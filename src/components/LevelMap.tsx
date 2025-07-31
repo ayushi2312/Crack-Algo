@@ -5,10 +5,45 @@ interface LevelMapProps {
   currentLevel: number;
 }
 
+interface Level {
+  id: number;
+  name: string;
+  difficulty: string;
+  problemsCount: number;
+  xpReward: number;
+  isCompleted: boolean;
+  isCurrent: boolean;
+  isLocked: boolean;
+  position: { x: number; y: number };
+}
+
 const LevelMap: React.FC<LevelMapProps> = ({ currentLevel }) => {
-  const levels = Array.from({ length: 50 }, (_, i) => ({
+  // DSA-themed level names that are engaging and educational
+  const levelNames = [
+    // Beginner Levels (1-10)
+    "Array Basics", "String Magic", "Number Games", "Simple Math", "First Steps",
+    "Loop Mastery", "Condition Logic", "Variable Power", "Function Fun", "Basic Patterns",
+    
+    // Easy Levels (11-25)
+    "Two Pointers", "Sliding Window", "Binary Search", "Sorting Basics", "Hash Maps",
+    "Stack Operations", "Queue Logic", "Linked Lists", "Tree Introduction", "Graph Basics",
+    "Recursion Start", "Dynamic Arrays", "String Manipulation", "Math Tricks", "Logic Puzzles",
+    
+    // Medium Levels (26-40)
+    "Advanced Arrays", "Complex Strings", "Tree Traversal", "Graph Search", "Dynamic Programming",
+    "Greedy Algorithms", "Backtracking", "Bit Manipulation", "Advanced Sorting", "Heap Operations",
+    "Union Find", "Trie Structures", "Segment Trees", "Binary Search Trees", "Advanced Recursion",
+    
+    // Hard Levels (41-50)
+    "Expert Arrays", "Master Strings", "Complex Trees", "Advanced Graphs", "Hard DP",
+    "Advanced Greedy", "Complex Backtracking", "Expert Bit Manipulation", "Master Sorting", "Advanced Heaps",
+    "Complex Union Find", "Advanced Tries", "Segment Tree Mastery", "Red-Black Trees", "Expert Recursion",
+    "Advanced Algorithms", "Competitive Problems", "Interview Prep", "System Design", "Algorithm Mastery"
+  ];
+
+  const levels: Level[] = Array.from({ length: 50 }, (_, i) => ({
     id: i + 1,
-    name: `Level ${i + 1}`,
+    name: levelNames[i] || `Level ${i + 1}`,
     difficulty: i < 10 ? 'Easy' : i < 25 ? 'Medium' : i < 40 ? 'Hard' : 'Expert',
     problemsCount: Math.floor(Math.random() * 5) + 3,
     xpReward: (i + 1) * 100,
@@ -47,14 +82,14 @@ const LevelMap: React.FC<LevelMapProps> = ({ currentLevel }) => {
     }
   };
 
-  const getLevelIcon = (level: any) => {
+  const getLevelIcon = (level: Level) => {
     if (level.isCompleted) return <CheckCircle className="h-8 w-8 text-white" />;
     if (level.isCurrent) return <Crown className="h-8 w-8 text-white animate-pulse" />;
     if (level.isLocked) return <Lock className="h-6 w-6 text-gray-400" />;
     return <Play className="h-6 w-6 text-white" />;
   };
 
-  const getPathBetweenLevels = (from: any, to: any) => {
+  const getPathBetweenLevels = (from: { position: { x: number; y: number } }, to: { position: { x: number; y: number } }) => {
     const dx = to.position.x - from.position.x;
     const dy = to.position.y - from.position.y;
     const midX = from.position.x + dx / 2;
@@ -69,8 +104,8 @@ const LevelMap: React.FC<LevelMapProps> = ({ currentLevel }) => {
     <div className="relative">
       <h2 className="text-2xl font-bold text-white mb-6">Your DSA Journey</h2>
       
-      {/* Level Map Container */}
-      <div className="relative bg-gradient-to-br from-green-200 via-lime-100 to-yellow-200 rounded-3xl border-4 border-green-300 p-8 overflow-auto max-h-[600px]">
+      {/* Level Map Container - No scroll, full background */}
+      <div className="relative bg-gradient-to-br from-green-200 via-lime-100 to-yellow-200 rounded-3xl border-4 border-green-300 p-8" style={{ minHeight: maxY }}>
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-20">
           <div className="w-full h-full bg-gradient-to-br from-green-300 to-lime-300 rounded-3xl"></div>

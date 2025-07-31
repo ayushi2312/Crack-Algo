@@ -1,84 +1,86 @@
-import React from 'react';
-import { Code, Menu, X, User, LogOut } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { signOutUser, analytics } from '../firebase/config';
-import { logEvent } from 'firebase/analytics';
+import React, { useState } from 'react';
+import { Menu, X, Bell } from 'lucide-react';
+import { User } from 'firebase/auth';
 
 interface NavbarProps {
   currentPage: string;
   onNavigate: (page: string) => void;
+  onShowNotifications: () => void;
+  currentUser: User | null;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
-  const { currentUser } = useAuth();
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, onShowNotifications, currentUser }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const handleSignOut = async () => {
-    try {
-      // Track sign-out from navbar
-      logEvent(analytics, 'navbar_logout');
-      
-      await signOutUser();
-      onNavigate('home');
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/20 backdrop-blur-lg border-b border-purple-500/20">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-lg border-b border-purple-500/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div 
-            className="flex items-center space-x-2 cursor-pointer group"
-            onClick={() => onNavigate('home')}
-          >
-            <div className="p-2 bg-gradient-to-r from-purple-600 to-blue-500 rounded-lg group-hover:scale-110 transition-transform">
-              <Code className="h-6 w-6 text-white" />
+          <div className="flex items-center">
+            <div 
+              onClick={() => onNavigate('home')}
+              className="flex items-center gap-3 cursor-pointer"
+            >
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-lg">&lt;/&gt;</span>
+              </div>
+              <span className="text-2xl font-bold text-white">CrackAlgo</span>
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-              CrackAlgo
-            </span>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <a href="#about" className="text-gray-300 hover:text-purple-400 transition-colors font-medium">
+          <div className="hidden md:flex items-center gap-8">
+            <button
+              onClick={() => onNavigate('home')}
+              className={`text-sm font-medium transition-colors ${
+                currentPage === 'home' 
+                  ? 'text-purple-400' 
+                  : 'text-gray-300 hover:text-white'
+              }`}
+            >
               About
-            </a>
-            <a href="#explore" className="text-gray-300 hover:text-purple-400 transition-colors font-medium">
+            </button>
+            <button
+              onClick={() => onNavigate('home')}
+              className={`text-sm font-medium transition-colors ${
+                currentPage === 'explore' 
+                  ? 'text-purple-400' 
+                  : 'text-gray-300 hover:text-white'
+              }`}
+            >
               Explore
-            </a>
+            </button>
+            
+            {/* Notifications for logged in users */}
+            {currentUser && (
+              <button
+                onClick={onShowNotifications}
+                className="relative p-2 text-gray-300 hover:text-white transition-colors"
+              >
+                <Bell className="h-5 w-5" />
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
+                  3
+                </span>
+              </button>
+            )}
+
+            {/* Auth Buttons */}
             {currentUser ? (
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 text-gray-300">
-                  <User className="h-4 w-4" />
-                  <span className="text-sm">
-                    {currentUser.displayName || currentUser.email}
-                  </span>
-                </div>
-                <button
-                  onClick={() => {
-                    logEvent(analytics, 'navbar_dashboard_click');
-                    onNavigate('dashboard');
-                  }}
-                  className="px-4 py-2 bg-gradient-to-r from-green-600 to-blue-500 text-white rounded-lg hover:from-green-700 hover:to-blue-600 transition-all duration-200 font-medium"
-                >
-                  Dashboard
-                </button>
-                <button
-                  onClick={handleSignOut}
-                  className="px-4 py-2 bg-red-600/20 border border-red-500/30 text-red-400 rounded-lg hover:border-red-400 transition-all duration-200 font-medium flex items-center gap-2"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Sign Out
-                </button>
-              </div>
+              <button
+                onClick={() => onNavigate('dashboard')}
+                className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-lg font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-200 transform hover:scale-105"
+              >
+                Dashboard
+              </button>
             ) : (
               <button
                 onClick={() => onNavigate('login')}
-                className="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-500 text-white rounded-lg hover:from-purple-700 hover:to-blue-600 transition-all duration-200 font-medium transform hover:scale-105"
+                className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-lg font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-200 transform hover:scale-105"
               >
                 Sign In
               </button>
@@ -88,53 +90,80 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
           {/* Mobile menu button */}
           <div className="md:hidden">
             <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-300 hover:text-white p-2"
+              onClick={toggleMenu}
+              className="text-gray-300 hover:text-white transition-colors"
             >
-              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
             </button>
           </div>
         </div>
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden absolute top-16 left-0 right-0 bg-black/90 backdrop-blur-lg border-b border-purple-500/20">
-            <div className="px-4 py-4 space-y-4">
-              <a href="#about" className="block text-gray-300 hover:text-purple-400 transition-colors font-medium">
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 bg-black/80 backdrop-blur-lg rounded-lg mt-2 border border-purple-500/20">
+              <button
+                onClick={() => {
+                  onNavigate('home');
+                  setIsMenuOpen(false);
+                }}
+                className={`block w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  currentPage === 'home' 
+                    ? 'text-purple-400 bg-purple-500/10' 
+                    : 'text-gray-300 hover:text-white hover:bg-gray-700'
+                }`}
+              >
                 About
-              </a>
-              <a href="#explore" className="block text-gray-300 hover:text-purple-400 transition-colors font-medium">
+              </button>
+              <button
+                onClick={() => {
+                  onNavigate('home');
+                  setIsMenuOpen(false);
+                }}
+                className={`block w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  currentPage === 'explore' 
+                    ? 'text-purple-400 bg-purple-500/10' 
+                    : 'text-gray-300 hover:text-white hover:bg-gray-700'
+                }`}
+              >
                 Explore
-              </a>
+              </button>
+              
+              {/* Notifications for logged in users */}
+              {currentUser && (
+                <button
+                  onClick={() => {
+                    onShowNotifications();
+                    setIsMenuOpen(false);
+                  }}
+                  className="block w-full text-left px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
+                >
+                  Notifications
+                </button>
+              )}
+
+              {/* Auth Buttons */}
               {currentUser ? (
-                <>
-                  <div className="flex items-center gap-2 text-gray-300 py-2">
-                    <User className="h-4 w-4" />
-                    <span className="text-sm">
-                      {currentUser.displayName || currentUser.email}
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => {
-                      logEvent(analytics, 'mobile_navbar_dashboard_click');
-                      onNavigate('dashboard');
-                    }}
-                    className="w-full px-6 py-2 bg-gradient-to-r from-green-600 to-blue-500 text-white rounded-lg hover:from-green-700 hover:to-blue-600 transition-all duration-200 font-medium"
-                  >
-                    Dashboard
-                  </button>
-                  <button
-                    onClick={handleSignOut}
-                    className="w-full px-6 py-2 bg-red-600/20 border border-red-500/30 text-red-400 rounded-lg hover:border-red-400 transition-all duration-200 font-medium flex items-center justify-center gap-2"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Sign Out
-                  </button>
-                </>
+                <button
+                  onClick={() => {
+                    onNavigate('dashboard');
+                    setIsMenuOpen(false);
+                  }}
+                  className="block w-full text-left px-3 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 transition-all duration-200"
+                >
+                  Dashboard
+                </button>
               ) : (
                 <button
-                  onClick={() => onNavigate('login')}
-                  className="w-full px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-500 text-white rounded-lg hover:from-purple-700 hover:to-blue-600 transition-all duration-200 font-medium"
+                  onClick={() => {
+                    onNavigate('login');
+                    setIsMenuOpen(false);
+                  }}
+                  className="block w-full text-left px-3 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 transition-all duration-200"
                 >
                   Sign In
                 </button>
